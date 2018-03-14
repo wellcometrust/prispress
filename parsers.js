@@ -8,7 +8,7 @@ const deSpan = s => s.replace(/<\/?span>/g, '');
 const bodyPartTypeToParser = {
   'video-embed': convertVideo,
   pre: convertPre,
-  html: convertParagraph,
+  html: convertHtml,
   standfirst: noop,
   heading: convertHeading,
   picture: convertImage,
@@ -18,8 +18,21 @@ const bodyPartTypeToParser = {
   tweet: convertTweet,
   instagramEmbed: convertInstagram,
   imageGallery: convertImageGallery,
-  quote: convertQuote
+  quote: convertQuote,
+  soundcloudEmbed: convertSoundcloudEmbed
 };
+
+function convertSoundcloudEmbed(value, weight) {
+  return {
+    key: 'soundcloudEmbed',
+    value: {
+      repeat: [],
+      'non-repeat': {
+        iframeSrc: value.iframeSrc
+      }
+    }
+  };
+}
 
 // TODO: Make sure this get's `pre`ed
 function convertPre(value, weight) {
@@ -39,13 +52,30 @@ function convertPre(value, weight) {
   };
 }
 
+function convertHtml(value, weight, slug) {
+  if (value.startsWith('<p')) {
+    return convertParagraph(value, weight, slug)
+  } else {
+    if (
+      /<(\w+)(?:\s+\w+="[^"]+(?:"\$[^"]+"[^"]+)?")*>\s*<\/\1>/.test(value) ||  // empty HTML tags <h1></h1>
+      value.match('v0.wordpress.com/js/next')
+    ) {
+
+    } else if (value.match('slideshow" data-trans="fade"')) {
+      console.log(slug);
+      // console.log(slug + '--------------');
+      // console.log(value);
+    }
+  }
+}
+
 function convertParagraph(value, weight, slug) {
   const p = convertHtmlToPrismicData(value);
   if (p && p.nonConverts.length > 0/* && slug === 'a-brainy-book' */) {
     // console.info('-----------------');
     // console.info(slug, p.nonConverts);
     // console.info('-----------------');
-    n[slug] = (n[slug] || 0) + 1;
+    n[slug] = (n[slug] || []).concat([p.nonConverts]);
   }
   return {
     key: 'text',
@@ -260,7 +290,6 @@ function convertList(value, weight) {
 }
 
 export function articleToPrismicParser(slug: string, article: Article, i) {
-  n = [];
   const mainMediaVideo = article.mainMedia.find(media => media.type === 'video');
   const mainMediaImage = article.mainMedia.find(media => media.type === 'picture');
   const mainMedia = mainMediaVideo ? convertVideo(mainMediaVideo, 'featured') : (mainMediaImage ? convertImage(mainMediaImage, 'featured') : null);
@@ -270,6 +299,7 @@ export function articleToPrismicParser(slug: string, article: Article, i) {
 
   const content = article.bodyParts.map((part, i) => {
     const parser = bodyPartTypeToParser[part.type];
+    if (part.type)
     if (!parser) {
       console.info(`> Could not find parser: ${part.type}`, part.value);
     } else {
@@ -278,7 +308,7 @@ export function articleToPrismicParser(slug: string, article: Article, i) {
     }
   }).filter(_ => _);
 
-  console.info(n);
+  // if (n[slug] && [slug].length > 0) console.info(slug, n[slug]);
 
   return {
     type: 'articles',

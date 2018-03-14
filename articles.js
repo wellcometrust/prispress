@@ -1,7 +1,7 @@
 import {List} from 'immutable';
 import fetch from 'isomorphic-unfetch';
 import request from 'superagent';
-import {ArticleFactory} from '../server/model/article';
+import {ArticleFactory} from '../wellcomecollection.org/server/model/article';
 
 const baseUri = 'https://public-api.wordpress.com/rest/v1.1/sites/blog.wellcomecollection.org';
 

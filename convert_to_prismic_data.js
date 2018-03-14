@@ -114,12 +114,15 @@ function convert(elArray, pointer = 0) {
         el.tag === 'strong' ||
         el.tag === 'br' ||
         el.tag === 'h4' ||
-        el.tag === 'em'
+        el.tag === 'em' ||
+        el.tag === 'i' ||
+        el.tag === 'span'
       )) ||
       el.node === 'comment'
     ) {
       return acc;
     } else {
+      if (el.tag === 'iframe') { console.info(el.attr.src) }
       nonConverts.push(el);
       return acc;
     }
