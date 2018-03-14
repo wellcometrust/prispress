@@ -19,7 +19,8 @@ const bodyPartTypeToParser = {
   instagramEmbed: convertInstagram,
   imageGallery: convertImageGallery,
   quote: convertQuote,
-  soundcloudEmbed: convertSoundcloudEmbed
+  soundcloudEmbed: convertSoundcloudEmbed,
+  iframe: convertIframe
 };
 
 function convertSoundcloudEmbed(value, weight) {
@@ -29,6 +30,18 @@ function convertSoundcloudEmbed(value, weight) {
       repeat: [],
       'non-repeat': {
         iframeSrc: value.iframeSrc
+      }
+    }
+  };
+}
+
+function convertIframe(value, weight) {
+  return {
+    key: 'iframe',
+    value: {
+      repeat: [],
+      'non-repeat': {
+        iframeSrc: value.src
       }
     }
   };
@@ -53,20 +66,14 @@ function convertPre(value, weight) {
 }
 
 function convertHtml(value, weight, slug) {
-  if (value.startsWith('<p')) {
-    return convertParagraph(value, weight, slug)
-  } else {
     if (
       /<(\w+)(?:\s+\w+="[^"]+(?:"\$[^"]+"[^"]+)?")*>\s*<\/\1>/.test(value) ||  // empty HTML tags <h1></h1>
       value.match('v0.wordpress.com/js/next')
     ) {
-
-    } else if (value.match('slideshow" data-trans="fade"')) {
-      console.log(slug);
-      // console.log(slug + '--------------');
-      // console.log(value);
+      return null;
     }
-  }
+
+    return convertParagraph(value, weight, slug);
 }
 
 function convertParagraph(value, weight, slug) {
@@ -308,7 +315,7 @@ export function articleToPrismicParser(slug: string, article: Article, i) {
     }
   }).filter(_ => _);
 
-  // if (n[slug] && [slug].length > 0) console.info(slug, n[slug]);
+  if (n[slug] && [slug].length > 0) console.info(slug, n[slug]);
 
   return {
     type: 'articles',
