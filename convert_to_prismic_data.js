@@ -3,7 +3,10 @@ const html2json = require('html2json').html2json;
 const prismicTypeMap = {
   p: 'paragraph',
   a: 'hyperlink',
-  em: 'em'
+  i: 'em',
+  em: 'em',
+  b: 'strong',
+  strong: 'strong'
 };
 
 const testText = `
@@ -79,6 +82,8 @@ const testJson = {
 
 var nonConverts = [];
 
+// function convertAttrsToData
+
 function convert(elArray, pointer = 0) {
   return elArray.reduce((acc, el) => {
     if (el.node === 'text') {
@@ -91,16 +96,25 @@ function convert(elArray, pointer = 0) {
       };
     } else if (el.child) {
       const isFirst = pointer === 0;
+      const prismicSpanType = prismicTypeMap[el.tag]
       if (isFirst) {
-        acc.type = prismicTypeMap[el.tag];
+        acc.type = prismicSpanType;
       }
-      const span = {
+
+      // We can't deal with unsupported HTML,
+      // but still need to run through and add the text.
+      const span = prismicSpanType ? {
         type: prismicTypeMap[el.tag],
         start: pointer
-      };
+      } : null;
+
       const domStructure = convert(el.child, pointer);
       pointer = pointer + domStructure.text.length;
-      span.end = pointer;
+
+      if (span) {
+        span.end = pointer;
+      }
+
       const newDomStructure = {
         type: acc.type,
         text: `${acc.text}${domStructure.text}`,

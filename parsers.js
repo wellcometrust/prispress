@@ -78,23 +78,15 @@ function convertHtml(value, weight, slug) {
 
 function convertParagraph(value, weight, slug) {
   const p = convertHtmlToPrismicData(value);
-  if (p && p.nonConverts.length > 0/* && slug === 'a-brainy-book' */) {
-    // console.info('-----------------');
-    // console.info(slug, p.nonConverts);
-    // console.info('-----------------');
+  if (p && p.nonConverts.length > 0) {
     n[slug] = (n[slug] || []).concat([p.nonConverts]);
   }
+  
   return {
     key: 'text',
     value: {
       'non-repeat': {
-        text: [{
-          type: 'paragraph',
-          content: {
-            text: deP(value),
-            spans: []
-          }
-        }]
+        text: [p.converts]
       }
     }
   };
@@ -102,10 +94,16 @@ function convertParagraph(value, weight, slug) {
 
 function convertHeading(value, weight) {
   return {
-    key: 'heading',
+    key: 'text',
     value: {
       'non-repeat': {
-        heading: value.value
+        text: [{
+          type: 'heading2',
+          content: {
+            text: deP(value.value),
+            spans: []
+          }
+        }]
       }
     }
   };
@@ -125,7 +123,7 @@ function convertImageGallery(value, weight) {
     return createPrismicImageWithCaption(item);
   });
   return {
-    key: 'embeddedImageGallery',
+    key: 'editorialImageGallery',
     value: {
       repeat: items
     }
@@ -196,7 +194,7 @@ function convertVideo(value, weight) {
   const ytId = value.embedUrl.match(/embed\/([^?].*)\?/);
 
   return {
-    key: 'youtubeVideo',
+    key: 'youtubeVideoEmbed',
     value: {
       'non-repeat': {
         weight,
@@ -247,21 +245,6 @@ function convertPromo(image, text) {
     key: 'editorialImage',
     value: {
       'non-repeat': createPrismicImageWithCaption(newImage)
-    }
-  };
-}
-
-function convertAuthor(author: Person) {
-  return {
-    key: 'person',
-    value: {
-      'non-repeat': {
-        role: 'author',
-        person: {
-          id: author.prismicId,
-          mask: 'people'
-        }
-      }
     }
   };
 }
@@ -319,7 +302,7 @@ export function articleToPrismicParser(slug: string, article: Article, i) {
 
   return {
     type: 'articles',
-    uid: slug,
+    wordpressSlug: slug,
     title: [{
       'type': 'heading1',
       'content': {

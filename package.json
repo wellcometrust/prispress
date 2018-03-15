@@ -1,7 +1,9 @@
 {
   "scripts": {
+    "convert_wp_to_csv": "babel-node convert_wp_to_csv.js",
     "convert_wp_to_articles": "babel-node convert_wp_to_articles.js",
-    "convert_articles_to_prismic_docs": "babel-node convert_articles_to_prismic_docs.js"
+    "convert_articles_to_prismic_docs": "babel-node convert_articles_to_prismic_docs.js",
+    "convert_prismic_docs_to_docs_with_prismic_ids": "babel-node convert_prismic_docs_to_docs_with_prismic_ids.js"
   },
   "dependencies": {
     "babel-cli": "^6.26.0",
@@ -14,6 +16,7 @@
     "isomorphic-unfetch": "^2.0.0",
     "mkdirp": "^0.5.1",
     "prismic-dom": "^2.0.6",
+    "prismic-javascript": "^1.5.0-beta.2",
     "prosemirror-model": "^1.1.0",
     "prosemirror-schema-basic": "^1.0.0",
     "superagent": "^3.8.2"

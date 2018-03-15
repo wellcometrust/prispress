@@ -19,7 +19,6 @@ async function writeArticleJson() {
 
     fs.writeFile(`./.dist/articles/${id}.json`, JSON.stringify(article), (err) => {
       if (err) throw (err);
-      console.log('The file was saved!');
     });
   });
 }

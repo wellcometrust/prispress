@@ -21,7 +21,9 @@ export async function getArticles(size: number = 100, {page = 1, order = 'DESC'}
   const response = await request(uri).query(query);
 
   const posts = response.body.posts.map(post => {
-    return ArticleFactory.fromWpApi(post);
+    const article = ArticleFactory.fromWpApi(post);
+    const withWordpressIds = Object.assign({}, article, { wordpressId: post.ID, wordpressSlug: post.slug });
+    return withWordpressIds;
   });
 
   return {
