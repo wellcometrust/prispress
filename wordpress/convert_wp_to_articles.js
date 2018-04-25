@@ -17,7 +17,7 @@ async function writeArticleJson() {
     const id = article.url.replace(/^\/articles\//, '');
     mkdirp.sync('./.dist/articles');
 
-    fs.writeFile(`./.dist/articles/${id}.json`, JSON.stringify(article), (err) => {
+    fs.writeFile(`./.dist/articles/${id}.json`, JSON.stringify(article, null, 2), (err) => {
       if (err) throw (err);
     });
   });

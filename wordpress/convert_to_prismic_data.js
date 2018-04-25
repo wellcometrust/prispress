@@ -113,6 +113,11 @@ function convert(elArray, pointer = 0) {
 
       if (span) {
         span.end = pointer;
+        if  (span.type === 'hyperlink') {
+          span.data = {
+            url: el.attr.href
+          }
+        }
       }
 
       const newDomStructure = {
@@ -148,7 +153,15 @@ export function convertHtmlToPrismicData(html) {
     nonConverts = [];
     const json = html2json(html);
     const converts = convert(json.child);
-    return { converts, nonConverts };
+
+    const remappedConvert = {
+      type: converts.type || 'paragraph',
+      content: {
+        text: converts.text.replace(/&nbsp;/g, ' '),
+        spans: converts.spans
+      }
+    };
+    return { converts: remappedConvert, nonConverts };
   } catch (e) {
     console.info(`Error: Cannot convert ${html}`);
     return null;

@@ -1,0 +1,13 @@
+# Prispress
+Converting the Wellcome Collection Wordpress blog content into Prismic documents
+
+# The order of things
+
+  yarn convert_wp_to_articles
+  yarn convert_articles_to_prismic_docs
+  yarn convert_prismic_docs_to_docs_with_prismic_ids
+
+
+# TODO
+* Add to series
+* Wordpress video - no idea how to move over

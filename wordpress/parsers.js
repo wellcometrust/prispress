@@ -1,15 +1,12 @@
 import {convertHtmlToPrismicData} from './convert_to_prismic_data';
 var n = {};
 const noop = () => {};
-const deP = s => s.replace(/<\/?p>/g, '');
-const deBr = s => s.replace(/<br>/g, '');
-const deN = s => s.replace(/\n/g, '');
-const deSpan = s => s.replace(/<\/?span>/g, '');
+const deHtml = s => s.replace(/<\/?[^>]+(>|$)/g, '');
 const bodyPartTypeToParser = {
   'video-embed': convertVideo,
   pre: convertPre,
   html: convertHtml,
-  standfirst: noop,
+  standfirst: convertStandfirst,
   heading: convertHeading,
   picture: convertImage,
   video: convertVideo,
@@ -56,10 +53,27 @@ function convertPre(value, weight) {
         content: [{
           type: 'paragraph',
           content: {
-            text: deP(value),
+            text: deHtml(value),
             spans: []
           }
         }]
+      }
+    }
+  };
+}
+
+function convertStandfirst(value, weight, slug) {
+  const p = convertHtmlToPrismicData(value);
+  if (p && p.nonConverts.length > 0) {
+    n[slug] = (n[slug] || []).concat([p.nonConverts]);
+    console.info(slug)
+  }
+
+  return {
+    key: 'standfirst',
+    value: {
+      'non-repeat': {
+        text: [p.converts]
       }
     }
   };
@@ -81,7 +95,7 @@ function convertParagraph(value, weight, slug) {
   if (p && p.nonConverts.length > 0) {
     n[slug] = (n[slug] || []).concat([p.nonConverts]);
   }
-  
+
   return {
     key: 'text',
     value: {
@@ -100,7 +114,7 @@ function convertHeading(value, weight) {
         text: [{
           type: 'heading2',
           content: {
-            text: deP(value.value),
+            text: deHtml(value.value),
             spans: []
           }
         }]
@@ -109,18 +123,19 @@ function convertHeading(value, weight) {
   };
 }
 
-function convertImage(value, weight) {
+function convertImage(value, weight, slug) {
   return {
     key: 'editorialImage',
+    label: weight,
     value: {
-      'non-repeat': Object.assign({}, createPrismicImageWithCaption(value), {weight})
+      'non-repeat': Object.assign({}, createPrismicImageWithCaption(value, slug), {weight})
     }
   };
 }
 
-function convertImageGallery(value, weight) {
+function convertImageGallery(value, weight, slug) {
   const items = value.items.map(item => {
-    return createPrismicImageWithCaption(item);
+    return createPrismicImageWithCaption(item, slug);
   });
   return {
     key: 'editorialImageGallery',
@@ -139,14 +154,14 @@ function convertQuote(value, weight) {
         quote: [{
           type: 'paragraph',
           content: {
-            text: deSpan(deBr(deP(quoteText))),
+            text: deHtml(quoteText),
             spans: []
           }
         }],
         source: [{
           type: 'paragraph',
           content: {
-            text: value.citation ? deSpan(deBr(deP(value.citation))) : null,
+            text: value.citation ? deHtml(value.citation) : null,
             spans: []
           }
         }],
@@ -156,12 +171,14 @@ function convertQuote(value, weight) {
   };
 }
 
-function createPrismicImageWithCaption(image: Picture) {
+function createPrismicImageWithCaption(image: Picture, slug) {
+  // if (!image.contentUrl) { console.info(slug) }
+  const caption = image.caption ? convertHtmlToPrismicData(image.caption) : null;
   return {
-    caption: [{
+    caption: (caption && caption.converts && [caption.converts]) || [{
       type: 'paragraph',
       content: {
-        text: image.caption ? deN(deP(image.caption)) : '',
+        text: '',
         spans: []
       }
     }],
@@ -172,6 +189,7 @@ function createPrismicImageWithCaption(image: Picture) {
         width: image.width,
         height: image.height
       },
+      name: image.contentUrl && 'wordpress-import-' + image.contentUrl.replace('https://wellcomecollection.files.wordpress.com/', '').replace(/\//g, '-'),
       width: image.width,
       height: image.height,
       url: image.contentUrl,
@@ -195,6 +213,7 @@ function convertVideo(value, weight) {
 
   return {
     key: 'youtubeVideoEmbed',
+    label: 'weight',
     value: {
       'non-repeat': {
         weight,
@@ -239,12 +258,12 @@ function convertTweet(value, weight) {
   };
 }
 
-function convertPromo(image, text) {
+function convertPromo(image, text, slug) {
   const newImage = Object.assign({}, image, {caption: text});
   return {
     key: 'editorialImage',
     value: {
-      'non-repeat': createPrismicImageWithCaption(newImage)
+      'non-repeat': createPrismicImageWithCaption(newImage, 'promo')
     }
   };
 }
@@ -285,11 +304,11 @@ export function articleToPrismicParser(slug: string, article: Article, i) {
   const mainMedia = mainMediaVideo ? convertVideo(mainMediaVideo, 'featured') : (mainMediaImage ? convertImage(mainMediaImage, 'featured') : null);
 
   const promoImage = mainMediaVideo ? mainMediaImage : article.thumbnail;
-  const promo = convertPromo(promoImage, article.description);
+  const promo = convertPromo(promoImage, article.description, slug);
 
   const content = article.bodyParts.map((part, i) => {
     const parser = bodyPartTypeToParser[part.type];
-    if (part.type)
+
     if (!parser) {
       console.info(`> Could not find parser: ${part.type}`, part.value);
     } else {
@@ -298,11 +317,12 @@ export function articleToPrismicParser(slug: string, article: Article, i) {
     }
   }).filter(_ => _);
 
-  if (n[slug] && [slug].length > 0) console.info(slug, n[slug]);
+  // if (n[slug] && [slug].length > 0) console.info(slug, n[slug]);
 
   return {
     type: 'articles',
     wordpressSlug: slug,
+    tags: ['wordpress', 'not_proofread'],
     title: [{
       'type': 'heading1',
       'content': {

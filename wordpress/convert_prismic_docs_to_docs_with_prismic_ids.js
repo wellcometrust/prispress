@@ -8,7 +8,7 @@ mkdirp.sync('./.dist/prismic_with_ids');
 
 async function getArticleWithWordpressSlug(slug) {
   // Bah
-  const api = await Prismic.getApi('https://wellcomecollection.prismic.io/api/v2');
+  const api = await Prismic.getApi('https://wellcomecollection-dev.prismic.io/api/v2');
   const article = api.query([
     Prismic.Predicates.at('my.articles.wordpressSlug', slug)
   ]);
@@ -17,7 +17,7 @@ async function getArticleWithWordpressSlug(slug) {
 }
 
 async function go() {
-  fs.readdir('./.dist/prismic/', (err, files) => { 
+  fs.readdir('./.dist/prismic/', (err, files) => {
     if (err) throw err;
     files.forEach((file, i) => {
       fs.readFile(`./.dist/prismic/${file}`, async (err, data) => {

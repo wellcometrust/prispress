@@ -3,7 +3,10 @@
     "convert_wp_to_csv": "babel-node convert_wp_to_csv.js",
     "convert_wp_to_articles": "babel-node convert_wp_to_articles.js",
     "convert_articles_to_prismic_docs": "babel-node convert_articles_to_prismic_docs.js",
-    "convert_prismic_docs_to_docs_with_prismic_ids": "babel-node convert_prismic_docs_to_docs_with_prismic_ids.js"
+    "convert_prismic_docs_to_docs_with_prismic_ids": "babel-node convert_prismic_docs_to_docs_with_prismic_ids.js",
+    "all": "yarn convert_wp_to_articles && yarn convert_articles_to_prismic_docs",
+    "convert_drupal_basic_page_to_prismic": "babel-node convert_drupal_basic_page_to_prismic",
+    "test": "jest"
   },
   "dependencies": {
     "babel-cli": "^6.26.0",
@@ -19,6 +22,14 @@
     "prismic-javascript": "^1.5.0-beta.2",
     "prosemirror-model": "^1.1.0",
     "prosemirror-schema-basic": "^1.0.0",
+    "sanitize-html": "^1.18.2",
     "superagent": "^3.8.2"
+  },
+  "devDependencies": {
+    "cheerio": "^1.0.0-rc.2",
+    "htmlparser2": "^3.9.2",
+    "htmltidy": "^0.0.6",
+    "jest": "^22.4.3",
+    "papaparse": "^4.4.0"
   }
 }
